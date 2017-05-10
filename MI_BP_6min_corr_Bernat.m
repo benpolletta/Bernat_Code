@@ -54,7 +54,7 @@ for p = 1:no_pairs
         
         name = ['ALL_', channel_names{pairs(p, 2)}];
         
-        BP_struct = load([name, '/', name, '_BP', BP_norm, '_6min.mat']);
+        BP_struct = load([name, '/', name, '_BP', BP_norm, '_6min_BP_stats.mat']);
         BP_data = BP_struct.BP_stats;
         BP_drugs = BP_struct.cat1_labels;
         BP_drug_data = BP_data(:, :, :, strcmp(BP_drugs, drug));
