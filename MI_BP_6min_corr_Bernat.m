@@ -100,7 +100,7 @@ for p = 1:no_pairs
     
     figure
     
-    for band = 1:size(BP_drug_data, 1)
+    for band = 1:size(pair_corrs, 2)
         
         subplot(rows, cols, band)
         
