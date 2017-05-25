@@ -88,7 +88,7 @@ for s = 1:subj_num
     
     for c = 1:no_criteria
         
-        indices(:, c) = logical(criteria(:, c) < quantile(criteria(:, c), quantile_used) & subj_state_index);
+        indices(:, c) = logical(criteria(:, c) < quantile(criteria(subj_state_index, c), quantile_used) & subj_state_index);
         
         length_selected_tMI = sum(indices(:, c));
         
@@ -100,7 +100,7 @@ for s = 1:subj_num
         
         tMI_marker(c) = tMI_marker(c) + length_selected_tMI;
         
-        non_indices(:, c) = logical(criteria(:, c) > quantile(criteria(:, c), 1 - quantile_used) & subj_state_index);
+        non_indices(:, c) = logical(criteria(:, c) > quantile(criteria(subj_state_index, c), 1 - quantile_used) & subj_state_index);
         
         length_selected_ntMI = sum(non_indices(:, c));
         
