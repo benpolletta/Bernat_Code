@@ -49,7 +49,7 @@ for s = 1:length(subjects)
         
             data = load(epoch_names{ch}{e});
             
-            [~, ~, max_freqs(e, ch), max_vals(e, ch), ~, power(e, ch)] = width_half_max(data, 1000, freq_ranges{ch}, .075, 0)
+            [~, ~, max_freqs(e, ch), max_vals(e, ch), ~, power(e, ch)] = width_half_max(data, 1000, freq_ranges{ch}, .075, 0);
             
         end
         

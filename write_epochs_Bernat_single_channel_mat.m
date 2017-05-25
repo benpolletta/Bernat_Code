@@ -38,6 +38,8 @@ for i = 1:no_epochs
     
 end
 
+fclose(fid_epoch_list);
+
 cd (present_dir)
     
 

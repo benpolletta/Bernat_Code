@@ -78,6 +78,8 @@ end
 
 save_as_pdf(gcf, ['multidrug', suffix])
 
+end
+
 
 function long_state = get_long_state(state)
 
@@ -90,4 +92,6 @@ switch state
     case 'R'
         long_state = 'REM';
         
+end
+
 end
