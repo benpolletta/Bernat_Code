@@ -30,7 +30,7 @@ no_figures = no_criteria + no_pairs + 1;
 delta_BP = nan(ceil(quantile_used*size(BP, 1)), size(BP, 2), no_figures);
 non_delta_BP = nan(ceil((1 - quantile_used)*size(BP, 1)), size(BP, 2), no_figures);
 
-[median_subj_dBP, median_subj_ndBP] = deal(nan(size(BP, 2), no_figures, subj_num));
+[mean_subj_dBP, mean_subj_ndBP] = deal(nan(size(BP, 2), no_figures, subj_num));
 
 [dBP_marker, ndBP_marker] = deal(zeros(no_figures, 1));
 
@@ -67,10 +67,6 @@ for s = 1:subj_num
     clear whm shm_sum entropy
     
     load([record_dir, '_chan1_whm.mat'])
-
-    % whm = whm(subj_state_index);
-    % 
-    % shm_sum = shm_sum(subj_state_index);
     
     if length(whm) > length(subj_state_index)
         
@@ -112,7 +108,7 @@ for s = 1:subj_num
         
         delta_BP(dBP_marker(c) + (1:length_selected_dMI), :, c) = subj_MI(subj_indices(:, c), :);
         
-        median_subj_dBP(:, c, s) = nanmedian(subj_MI(subj_indices(:, c), :))';
+        mean_subj_dBP(:, c, s) = nanmean(subj_MI(subj_indices(:, c), :))';
         
         dBP_marker(c) = dBP_marker(c) + length_selected_dMI;
         
@@ -120,7 +116,7 @@ for s = 1:subj_num
         
         non_delta_BP(ndBP_marker(c) + (1:length_selected_ndMI), :, c) = subj_MI(subj_non_indices(:, c), :);
         
-        median_subj_ndBP(:, c, s) = nanmedian(subj_MI(subj_non_indices(:, c), :))';
+        mean_subj_ndBP(:, c, s) = nanmean(subj_MI(subj_non_indices(:, c), :))';
         
         ndBP_marker(c) = ndBP_marker(c) + length_selected_ndMI;
         
@@ -136,7 +132,7 @@ for s = 1:subj_num
         
         delta_BP(dBP_marker(no_criteria + p) + (1:length_selected_dMI), :, no_criteria + p) = subj_MI(index, :);
         
-        median_subj_dBP(:, no_criteria + p, s) = nanmedian(subj_MI(index, :))';
+        mean_subj_dBP(:, no_criteria + p, s) = nanmean(subj_MI(index, :))';
         
         dBP_marker(no_criteria + p) = dBP_marker(no_criteria + p) + length_selected_dMI;
         
@@ -148,7 +144,7 @@ for s = 1:subj_num
         
         non_delta_BP(ndBP_marker(no_criteria + p) + (1:length_selected_ndMI), :, no_criteria + p) = subj_MI(non_index, :);
         
-        median_subj_ndBP(:, no_criteria + p, s) = nanmedian(subj_MI(non_index, :))';
+        mean_subj_ndBP(:, no_criteria + p, s) = nanmean(subj_MI(non_index, :))';
         
         ndBP_marker(no_criteria + p) = ndBP_marker(no_criteria + p) + length_selected_ndMI;
         
@@ -162,7 +158,7 @@ for s = 1:subj_num
     
     delta_BP(dBP_marker(no_figures) + (1:length_selected_dMI), :, no_figures) = subj_MI(index, :);
         
-    median_subj_dBP(:, no_figures, s) = nanmedian(subj_MI(index, :))';
+    mean_subj_dBP(:, no_figures, s) = nanmean(subj_MI(index, :))';
     
     dBP_marker(no_figures) = dBP_marker(no_figures) + length_selected_dMI;
     
@@ -174,7 +170,7 @@ for s = 1:subj_num
     
     non_delta_BP(ndBP_marker(no_figures) + (1:length_selected_ndMI), :, no_figures) = subj_MI(non_index, :);
         
-    median_subj_ndBP(:, no_figures, s) = nanmedian(subj_MI(non_index, :))';
+    mean_subj_ndBP(:, no_figures, s) = nanmean(subj_MI(non_index, :))';
     
     ndBP_marker(no_figures) = ndBP_marker(no_figures) + length_selected_ndMI;
     
@@ -182,28 +178,20 @@ for s = 1:subj_num
     
 end
 
-% end_dMI_marker = max(dMI_marker)
-% 
-% end_ndMI_marker = max(ndMI_marker)
-% 
-% delta_MI((end_dMI_marker + 1):end, :, :) = [];
-% 
-% non_delta_MI((end_ndMI_marker + 1):end, :, :) = [];
-
-[median_dMI, median_ndMI] = deal(nan(size(BP, 2), no_figures));
+[mean_dBP, mean_ndBP] = deal(nan(size(BP, 2), no_figures));
 
 for f = 1:no_figures
 
     delta_BP(sum(delta_BP(:, :, f), 2) == 0, :, f) = nan;
     
-    median_dMI(:, f) = nanmedian(delta_BP(:, :, f))';
+    mean_dBP(:, f) = nanmean(delta_BP(:, :, f))';
 
     non_delta_BP(sum(non_delta_BP(:, :, f), 2) == 0, :, f) = nan;
     
-    median_ndMI(:, f) = nanmedian(non_delta_BP(:, :, f))';
+    mean_ndBP(:, f) = nanmean(non_delta_BP(:, :, f))';
     
 end
 
 save([drug, '_delta_BP_q', num2str(quantile_used), '_shm', sprintf('%.03f_%.03f', shm_lims), state_label, '_tails.mat'], '-v7.3',...
-    'drug', 'shm_lims', 'state', 'quantile_used', 'indices', 'delta_MI', 'median_subj_dMI', 'median_dMI',...
-    'non_delta_MI', 'median_subj_ndMI', 'median_ndMI')
+    'drug', 'shm_lims', 'state', 'quantile_used', 'indices', 'delta_BP', 'mean_subj_dBP', 'mean_dBP',...
+    'non_delta_BP', 'mean_subj_ndBP', 'mean_ndBP')
