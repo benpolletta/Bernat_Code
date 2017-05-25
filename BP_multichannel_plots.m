@@ -43,13 +43,13 @@ for n = 1:no_norms
             
             load([ch_dir, '/', ch_dir, '_BP', ranksum_suffix, '.mat'])
             
-            BP_ranksum_new = permute(BP_ranksum, [2, 1, 3]);
+            BP_ranksum_new = permute(BP_ranksum, [2, 1, 3, 4]);
             
             BPr_dims = size(BP_ranksum_new);
             
-            BP_ranksum_new = reshape(BP_ranksum_new, BPr_dims(1), 1, BPr_dims(2), BPr_dims(3));
+            BP_ranksum_new = reshape(BP_ranksum_new, BPr_dims(1), 1, BPr_dims(2), BPr_dims(3), BPr_dims(4));
             
-            All_BP_ranksum(:, ch, :, :) = BP_ranksum_new;
+            All_BP_ranksum(:, ch, :, :, :) = BP_ranksum_new;
             
         end
         
@@ -73,19 +73,28 @@ for n = 1:no_norms
                     
                 end
                 
-                plot_test(:, :) = [nan(size(All_BP_test(:, :, b, d - 1))) All_BP_test(:, :, b, d - 1)];
+                for tail = 1:2
+                    
+                    plot_test(:, :, tail) = [nan(size(All_BP_test(:, :, b, d - 1, tail))) All_BP_test(:, :, b, d - 1, tail)];
+                
+                end
                 
                 plot_test(plot_test == 0) = nan;
                 
                 plot_stats = plot_stats(:, [1 4 2 5 3 6], :); % Interleaving saline & drug data series, for purposes of custom linestyle cycling.
                 
-                plot_test = plot_test(:, [1 4 2 5 3 6]);
+                plot_test = plot_test(:, [1 4 2 5 3 6], :);
                 
                 med_min = min(min(plot_stats(:, :, 1)));
                 
-                med_range = max(max(plot_stats(:, :, 1))) - med_min;
+                med_max = max(max(plot_stats(:, :, 1)));
                 
-                test_multiplier = ones(size(plot_test))*diag(med_min - 2*[.05 .05 .1 .1 .15 .15]*med_range);
+                med_range = med_max - med_min;
+                
+                test_multiplier = [ones(size(plot_test(:, :, 1)))*diag(med_min - 2*[.05 .05 .1 .1 .15 .15]*med_range) ...
+                    ones(size(plot_test(:, :, 1)))*diag(med_max + 2*[.15 .15 .1 .1 .05 .05]*med_range)];
+                
+                plot_test = [plot_test(:, :, 2) plot_test(:, :, 1)];
                 
                 figure(2*d - 1 - 2)
                 
@@ -107,7 +116,7 @@ for n = 1:no_norms
                 
                 set(gca, 'XTick', 1:tick_spacing:length(cat2_labels), 'XTickLabel', cat2_labels(1:tick_spacing:end))
                     
-                ylim([med_min - .4*med_range, med_min + 1.1*med_range]) %axis tight
+                ylim([med_min - .4*med_range, med_max + .4*med_range]) %axis tight
                 
                 title({['Band Pow., Median for ', drugs{d}, long_norms{n}]; band_labels{b}})
                 
