@@ -74,7 +74,7 @@ for s = 1:subj_num
     
     mtit([subject, ' MI Outside of Narrowband Delta', long_state_label])
     
-    save_as_pdf(gcf, [subject, '_', drug, '_non_delta_MI_q', num2str(quantile_used), shm_label, state_label, matched_flag])
+    save_as_pdf(gcf, [subject, '_', drug, '_non_delta_MI_q', num2str(quantile_used), state_label, matched_flag])
     
 end
 
