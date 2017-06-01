@@ -1,4 +1,13 @@
-function BP_MK801_NVP_Ro25_figure % (hi_hr, cplot_norm)
+function BP_MK801_NVP_Ro25_figure_stats_by_subject(significance, bands_plotted) % (hi_hr, cplot_norm)
+
+if nargin < 1, significance = []; end
+if isempty(significance), significance = .025; end
+sig_flag = make_label('p', significance, .025);
+            
+if nargin < 2, bands_plotted = []; end
+if isempty(bands_plotted), bands_plotted = 1:6; end % [1 2]; % [1 2 5];
+no_bands_plotted = length(bands_plotted);
+band_label = make_label('bands', bands_plotted, 1:6);
 
 hi_hr = 'drug'; cplot_norm = '';
 
@@ -39,9 +48,6 @@ timestep_lengths = cellfun(@(x) length(x), timestep_labels);
 tick_spacing = floor(timestep_lengths/4);
 
 no_bands = 6;
-            
-bands_plotted = 1:no_bands; % [1 2]; % [1 2 5];
-no_bands_plotted = length(bands_plotted);
 
 drug_p_val_index = [1 4 2 3];
 
@@ -52,8 +58,6 @@ clear titles xlabels ylabels
 preinj_data = nan(no_afs, no_pfs, no_stats, no_channels, no_norms);
 
 All_BP_stats = nan(no_BP_6min_periods, no_channels, no_bands, no_stats, no_drugs, no_norms, no_timesteps);
-
-% [All_BP_ranksum, All_BP_test] = deal(nan(no_BP_6min_periods, no_channels, 2, no_bands, no_drugs - 1, no_norms, no_timesteps));
     
 load('BP_ranksum_by_subject')
 
@@ -91,7 +95,7 @@ for n=1:no_norms
         
         % Bonferroni correcting & testing p-values.
         
-        All_BP_test(:, :, :, :, :, n, t) = All_BP_ranksum(:, :, :, :, :, n, t) <= .025; % /(3*sum_all_dimensions(~isnan(All_BP_ranksum(:, :, :, :, :, n, t))));
+        All_BP_test(:, :, :, :, :, n, t) = All_BP_ranksum(:, :, :, :, :, n, t) <= significance; % /(3*sum_all_dimensions(~isnan(All_BP_ranksum(:, :, :, :, :, n, t))));
         
     end
     
@@ -108,7 +112,7 @@ for n = 1:no_norms
             
             handle(n, s) = figure;
             
-            %% Plotting time series w/ stats.
+            %% Plotting time series.
             
             for b = 1:no_bands_plotted
                 
@@ -117,7 +121,6 @@ for n = 1:no_norms
                     clear plot_stats
                     
                     plot_stats = All_BP_stats(:, :, bands_plotted(b), s, d, n, t) - All_BP_stats(:, :, bands_plotted(b), s, 1, n, t);
-                    % [All_BP_stats(:, :, bands_plotted(b), s, 1) All_BP_stats(:, :, bands_plotted(b), s, d)];
                     
                     ax(b, d - 1) = subplot(no_bands_plotted, no_drugs_plotted, (b - 1)*no_drugs_plotted + d - 1); % (d - 2)*no_bands_plotted + b)
                     
@@ -156,23 +159,9 @@ for n = 1:no_norms
                     
                 end
                 
-                linkaxes(ax(b, :))
+                sync_axes(ax(b, :))
                 
-                if b == no_bands_plotted
-                    
-                    y_lims = ylim;
-                    
-                    y_lim_upper = y_lims(2);
-                    
-                    axis(ax(b, 2), 'tight')
-                    
-                    y_lims = ylim(ax(b, 2));
-                    
-                    ylim([y_lims(1) y_lim_upper])
-                    
-                end
-                
-                linkaxes(ax(b, :), 'off')
+                %% Plotting stats.
                 
                 for d = 2:last_drug
                     
@@ -184,40 +173,20 @@ for n = 1:no_norms
                     
                     plot_test(plot_test == 0) = nan;
                     
-                    side_vec = [ones(1, 3) zeros(1, 3)];
-                    
-                    % side_vec(:, sum(~isnan(plot_test)) == 0) = [];
-                    %
-                    % plot_test(:, sum(~isnan(plot_test)) == 0) = [];
+                    side_vec = [ones(1, no_channels) zeros(1, no_channels)];
                     
                     subplot(no_bands_plotted, no_drugs_plotted, (b - 1)*no_drugs_plotted + d - 1)
                     
                     add_stars(gca, (1:timestep_lengths(t))', plot_test(1:timestep_lengths(t), :), side_vec, [])
                     
-                    % add_stars(gca, (1:no_BP_hr_periods)', plot_test(:, :, 2), 0, [])
-                    
-                    % subplot(no_bands_plotted, no_drugs - 2, (b - 1)*(no_drugs - 2) + d - 1)
-                    %
-                    % y_lims = ylim;
-                    %
-                    % y_range = diff(y_lims);
-                    %
-                    % test_multiplier = [ones(size(plot_test(:, :, 2)))*diag(y_lims(1) - [.05 .1 .15]*y_range),...
-                    %     ones(size(plot_test(:, :, 1)))*diag(y_lims(2) + [.15 .1 .05]*y_range)]; % [nan nan nan 0.05 .1 .15]*med_range);
-                    %
-                    % plot((1:no_BP_hr_periods)', [plot_test(:, :, 2) plot_test(:, :, 1)].*test_multiplier)
-                    %
-                    % ylim([y_lims(1) - .2*y_range, y_lims(2) + .2*y_range])
-                    
                 end
                 
-                linkaxes(ax(b, :))
+                sync_axes(ax(b, :))
                 
             end
             
-            % linkaxes([flipud(ax(:, 1)); ax(:, 2)])
-            
-            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel_MK801_NVP_Ro25', timesteps{t}, make_label('bands', bands_plotted), '_stats_by_subject']) %, 'orientation', 'portrait')
+            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel_MK801_NVP_Ro25',...
+                timesteps{t}, make_label('bands', bands_plotted), sig_flag, '_stats_by_subject']) %, 'orientation', 'portrait')
             
         end
         

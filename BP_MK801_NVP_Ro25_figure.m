@@ -1,4 +1,13 @@
-function BP_MK801_NVP_Ro25_figure % (hi_hr, cplot_norm)
+function BP_MK801_NVP_Ro25_figure(significance, bands_plotted) % (hi_hr, cplot_norm)
+
+if nargin < 1, significance = []; end
+if isempty(significance), significance = .01; end
+sig_label = make_label('p', significance, .025);
+            
+if nargin < 2, bands_plotted = []; end
+if isempty(bands_plotted), bands_plotted = 1:6; end % [1 2]; % [1 2 5];
+no_bands_plotted = length(bands_plotted);
+band_label = make_label('bands', bands_plotted, 1:6);
 
 hi_hr = 'drug'; cplot_norm = '';
 
@@ -39,9 +48,6 @@ timestep_lengths = cellfun(@(x) length(x), timestep_labels);
 tick_spacing = floor(timestep_lengths/4);
 
 no_bands = 6;
-            
-bands_plotted = [1 2]; % [1 2 5];
-no_bands_plotted = length(bands_plotted);
 
 drug_p_val_index = [1 4 2 3];
 
@@ -99,7 +105,7 @@ for n=1:no_norms
         
         % Bonferroni correcting & testing p-values.
         
-        All_BP_test(:, :, :, :, :, n, t) = All_BP_ranksum(:, :, :, :, :, n, t) <= .01/(3*sum_all_dimensions(~isnan(All_BP_ranksum(:, :, :, :, :, n, t))));
+        All_BP_test(:, :, :, :, :, n, t) = All_BP_ranksum(:, :, :, :, :, n, t) <= significance/(3*sum_all_dimensions(~isnan(All_BP_ranksum(:, :, :, :, :, n, t))));
         
     end
     
@@ -116,7 +122,7 @@ for n = 1:no_norms
             
             handle(n, s) = figure;
             
-            %% Plotting time series w/ stats.
+            %% Plotting time series.
             
             for b = 1:no_bands_plotted
                 
@@ -164,23 +170,9 @@ for n = 1:no_norms
                     
                 end
                 
-                linkaxes(ax(b, :))
+                sync_axes(ax(b, :))
                 
-                if b == no_bands_plotted
-                    
-                    y_lims = ylim;
-                    
-                    y_lim_upper = y_lims(2);
-                    
-                    axis(ax(b, 2), 'tight')
-                    
-                    y_lims = ylim(ax(b, 2));
-                    
-                    ylim([y_lims(1) y_lim_upper])
-                    
-                end
-                
-                linkaxes(ax(b, :), 'off')
+                %% Plotting stats.
                 
                 for d = 2:last_drug
                     
@@ -219,13 +211,14 @@ for n = 1:no_norms
                     
                 end
                 
-                linkaxes(ax(b, :))
+                sync_axes(ax(b, :))
                 
             end
             
             % linkaxes([flipud(ax(:, 1)); ax(:, 2)])
             
-            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel_MK801_NVP_Ro25', timesteps{t}, make_label('bands', bands_plotted)]) %, 'orientation', 'portrait')
+            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel_MK801_NVP_Ro25',...
+                timesteps{t}, band_label, sig_label]) %, 'orientation', 'portrait')
             
         end
         
