@@ -1,4 +1,4 @@
-function collect_MI_by_whm_tails(drug, quantile_used, shm_lims, states)
+function collect_MI_by_whm_tails(drug, quantile_used, states)
 
 load('subjects.mat'), load('AP_freqs.mat')
 
@@ -38,8 +38,6 @@ non_delta_MI = nan(ceil((1 - quantile_used)*size(MI, 1)), size(MI, 2), no_figure
 
 pairs = nchoosek(1:no_criteria, 2);
 
-delta_labels = {'Low whm', 'Low shm', 'Low shm/whm', 'Low whm & shm', 'Low whm & shm/whm', 'Low shm & shm/whm', 'Low whm & shm & shm/whm'};
-
 for s = 1:subj_num
 
     subject = subjects{s};
@@ -64,63 +62,70 @@ for s = 1:subj_num
 
     end
 
-    clear whm shm_sum entropy
+    clear criteria
 
-    load([record_dir, '_chan1_whm.mat'])
-
-    % whm = whm(subj_state_index);
-    %
-    % shm_sum = shm_sum(subj_state_index);
+    whm_struct = load([record_dir, '_chan1_whm.mat']);
+    whm_fields = fieldnames(whm_struct);
+    
+    for f = 1:length(whm_fields), eval(sprintf('%s = whm_struct.%s;', whm_fields{f}, whm_fields{f})), end
+    
+    entropy = load([record_dir, '_chan1_whm.mat'], 'entropy');
+    entropy = entropy.entropy;
+    
+    power = load([record_dir, '_chan1_whm.mat'], 'power');
+    power = power.power;
+    
+    criteria = [whm shm_sum shm_sum./whm entropy max_freqs max_vals power];
 
     if length(whm) > length(subj_state_index)
 
-        whm((length(subj_state_index) + 1):end) = [];
-
-        shm_sum((length(subj_state_index) + 1):end) = [];
-
-        entropy((length(subj_state_index) + 1):end) = [];
+        criteria((length(subj_state_index) + 1):end, :) = [];
 
     end
+    
+    [delta_indices, non_delta_indices] = deal(nan(size(criteria)));
 
-    shm_whm_q = shm_sum./whm;
-
-    low_whm_indices = whm < quantile(whm(subj_state_index), quantile_used) & subj_state_index;
-
-    low_shm_sum_indices = shm_sum < quantile(shm_sum(subj_state_index), quantile_used) & subj_state_index;
-
-    low_shm_whm_q_indices = shm_whm_q < shm_lims(1) & subj_state_index;
-
-    low_entropy_indices = entropy < quantile(entropy(subj_state_index), quantile_used) & subj_state_index;
-
-    indices = [low_whm_indices low_shm_sum_indices low_shm_whm_q_indices low_entropy_indices];
-
-    high_whm_indices = whm > quantile(whm(subj_state_index), 1 - quantile_used) & subj_state_index;
-
-    high_shm_sum_indices = shm_sum > quantile(shm_sum(subj_state_index), 1 - quantile_used) & subj_state_index;
-
-    high_shm_whm_q_indices = shm_whm_q > shm_lims(2) & subj_state_index;
-
-    high_entropy_indices = entropy > quantile(entropy(subj_state_index), 1 - quantile_used) & subj_state_index;
-
-    non_indices = [high_whm_indices high_shm_sum_indices high_shm_whm_q_indices high_entropy_indices];
+    for c = 1:size(criteria, 2)
+       
+        if c <= 5
+            
+            delta_indices(:, c) = criteria(:, c) < quantile(criteria(subj_state_index, c), quantile_used)...
+                & subj_state_index;
+            
+            non_delta_indices(:, c) = criteria(:, c) > quantile(criteria(subj_state_index, c), 1 - quantile_used)...
+                & subj_state_index;
+            
+        else
+            
+            delta_indices(:, c) = criteria(:, c) > quantile(criteria(subj_state_index, c), 1 - quantile_used)...
+                & subj_state_index;
+            
+            non_delta_indices(:, c) = criteria(:, c) > quantile(criteria(subj_state_index, c), quantile_used)...
+                & subj_state_index;
+            
+        end
+        
+    end
+    
+    delta_indices = logical(delta_indices); non_delta_indices = logical(non_delta_indices);
 
     subj_MI = MI(subj_MI_index, :);
 
     for c = 1:no_criteria
 
-        length_selected_dMI = sum(indices(:, c));
+        length_selected_dMI = sum(delta_indices(:, c));
 
-        delta_MI(dMI_marker(c) + (1:length_selected_dMI), :, c) = subj_MI(indices(:, c), :);
+        delta_MI(dMI_marker(c) + (1:length_selected_dMI), :, c) = subj_MI(delta_indices(:, c), :);
 
-        median_subj_dMI(:, c, s) = nanmedian(subj_MI(indices(:, c), :))';
+        median_subj_dMI(:, c, s) = nanmedian(subj_MI(delta_indices(:, c), :))';
 
         dMI_marker(c) = dMI_marker(c) + length_selected_dMI;
 
-        length_selected_ndMI = sum(non_indices(:, c));
+        length_selected_ndMI = sum(non_delta_indices(:, c));
 
-        non_delta_MI(ndMI_marker(c) + (1:length_selected_ndMI), :, c) = subj_MI(non_indices(:, c), :);
+        non_delta_MI(ndMI_marker(c) + (1:length_selected_ndMI), :, c) = subj_MI(non_delta_indices(:, c), :);
 
-        median_subj_ndMI(:, c, s) = nanmedian(subj_MI(non_indices(:, c), :))';
+        median_subj_ndMI(:, c, s) = nanmedian(subj_MI(non_delta_indices(:, c), :))';
 
         ndMI_marker(c) = ndMI_marker(c) + length_selected_ndMI;
 
@@ -128,7 +133,7 @@ for s = 1:subj_num
 
     for p = 1:no_pairs
 
-        index = indices(:, pairs(p, 1)) & indices(:, pairs(p, 2));
+        index = delta_indices(:, pairs(p, 1)) & delta_indices(:, pairs(p, 2));
 
         length_selected_dMI = sum(index);
 
@@ -138,7 +143,7 @@ for s = 1:subj_num
 
         dMI_marker(no_criteria + p) = dMI_marker(no_criteria + p) + length_selected_dMI;
 
-        non_index = non_indices(:, pairs(p, 1)) & non_indices(:, pairs(p, 2));
+        non_index = non_delta_indices(:, pairs(p, 1)) & non_delta_indices(:, pairs(p, 2));
 
         length_selected_ndMI = sum(non_index);
 
@@ -150,7 +155,7 @@ for s = 1:subj_num
 
     end
 
-    index = cumprod(indices, 2); index = logical(index(:, end));
+    index = cumprod(delta_indices, 2); index = logical(index(:, end));
 
     length_selected_dMI = sum(index);
 
@@ -160,7 +165,7 @@ for s = 1:subj_num
 
     dMI_marker(no_figures) = dMI_marker(no_figures) + length_selected_dMI;
 
-    non_index = cumprod(non_indices, 2); non_index = logical(non_index(:, 3));
+    non_index = cumprod(non_delta_indices, 2); non_index = logical(non_index(:, 3));
 
     length_selected_ndMI = sum(non_index);
 
@@ -194,6 +199,6 @@ for f = 1:no_figures
 
 end
 
-save([drug, '_delta_MI_q', num2str(quantile_used), '_shm', sprintf('%.03f_%.03f', shm_lims), state_label, '_tails.mat'], '-v7.3',...
-    'drug', 'shm_lims', 'state', 'quantile_used', 'delta_MI', 'median_subj_dMI', 'median_dMI',...
+save([drug, '_delta_MI_q', num2str(quantile_used), state_label, '_tails.mat'], '-v7.3',...
+    'drug', 'state', 'quantile_used', 'delta_MI', 'median_subj_dMI', 'median_dMI',...
     'non_delta_MI', 'median_subj_ndMI', 'median_ndMI')
