@@ -25,7 +25,9 @@ MI_subjects = text_read([name,'/',name,'_',measure,'_subjects.txt'],'%s');
 MI_states = text_read([name,'/',name,'_',measure,'_states.txt'],'%s');
 MI = load([name, '/', name, '_', measure, '_hr_MI.txt']);
 
-no_criteria = 4;
+
+criteria = {'WHM', 'SHM', 'SHM/WHM', 'Entropy', 'Peak Freq.', 'Peak Pow.', 'Pow.'};
+no_criteria = length(criteria);
 no_pairs = nchoosek(no_criteria, 2);
 no_figures = no_criteria + no_pairs + 1;
 
