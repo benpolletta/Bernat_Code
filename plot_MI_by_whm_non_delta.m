@@ -1,4 +1,4 @@
-function plot_MI_by_whm_non_delta(drug, quantile_used, shm_lim, states, matched_flag)
+function plot_MI_by_whm_non_delta(drug, quantile_used, states, matched_flag)
 
 load('subjects.mat'), load('AP_freqs.mat')
 
@@ -18,36 +18,37 @@ if ~isempty(states)
     
 end
 
-if isscalar(shm_lim)
+load([drug, '_delta_MI_q', num2str(quantile_used), state_label, matched_flag, '.mat'])
+
+criteria = {'WHM', 'SHM', 'SHM/WHM', 'Entropy', 'Peak Freq.', 'Peak Pow.', 'Pow.'};
+
+no_criteria = length(criteria);
+
+pairs = nchoosek(1:no_criteria, 2);
+
+no_pairs = size(pairs, 1);
+
+delta_labels = cell(no_criteria + no_pairs + 1, 1);
+
+for c = 1:5 % no_criteria
     
-    shm_label = ['_shm', num2str(shm_lim)];
-    
-else
-   
-    shm_label = sprintf('_shm%.03f_%.03f', shm_lim);
-    
-end
-
-
-load([drug, '_delta_MI_q', num2str(quantile_used), '_shm', sprintf('%.03f_%.03f', shm_lim), state_label, matched_flag, '.mat'])
-
-criteria = {'whm', 'shm', 'shm/whm', 'entropy'};
-
-pairs = nchoosek(1:length(criteria), 2);
-
-for c = 1:length(criteria)
-    
-    delta_labels{c} = ['High ', criteria{c}];
+    delta_labels{c} = sprintf('Highest %g \\delta %s', quantile_used, criteria{c});
     
 end
 
-for p = 1:length(pairs)
+for c = 5:no_criteria
     
-    delta_labels{length(criteria) + p} = ['High ', criteria{pairs(p, 1)}, ' & ', criteria{pairs(p, 2)}];
+    delta_labels{c} = sprintf('Lowest %g \\delta %s', quantile_used, criteria{c});
     
 end
 
-delta_labels{end + 1} = 'High shm & whm & shm/whm & entropy';
+for p = 1:no_pairs
+    
+    delta_labels{no_criteria + p} = delta_labels(pairs(p, :));
+    
+end
+
+delta_labels{end} = 'Intersection of All Criteria';
 
 no_deltas = length(delta_labels);
 
@@ -95,4 +96,4 @@ end
 
 mtit(['MI Outside of Narrowband Delta', long_state_label])
 
-save_as_pdf(gcf, [drug, '_non_delta_MI_q', num2str(quantile_used), shm_label, state_label, matched_flag])
+save_as_pdf(gcf, [drug, '_non_delta_MI_q', num2str(quantile_used), state_label, matched_flag])

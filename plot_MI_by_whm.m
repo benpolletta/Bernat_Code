@@ -1,4 +1,4 @@
-function plot_MI_by_whm(drug, quantile_used, shm_lim, states)
+function plot_MI_by_whm(drug, quantile_used, states)
 
 load('subjects.mat'), load('AP_freqs.mat')
 
@@ -18,35 +18,47 @@ if ~isempty(states)
     
 end
 
-if isscalar(shm_lim)
+% if isscalar(shm_lim)
+%     
+%     shm_flag = num2str(shm_lim, '%.03f');
+%     
+% elseif length(shm_lim) == 2
+%     
+%     shm_flag = sprintf('%.03f_%.03f', shm_lim);
+%     
+% end
+
+load([drug, '_delta_MI_q', num2str(quantile_used), state_label, '_tails.mat'])
+
+criteria = {'WHM', 'SHM', 'SHM/WHM', 'Entropy', 'Peak Freq.', 'Peak Pow.', 'Pow.'};
+
+no_criteria = length(criteria);
+
+pairs = nchoosek(1:no_criteria, 2);
+
+no_pairs = size(pairs, 1);
+
+delta_labels = cell(no_criteria + no_pairs + 1, 1);
+
+for c = 1:5 % no_criteria
     
-    shm_flag = num2str(shm_lim, '%.03f');
-    
-elseif length(shm_lim) == 2
-    
-    shm_flag = sprintf('%.03f_%.03f', shm_lim);
+    delta_labels{c} = sprintf('Lowest %g \\delta %s', quantile_used, criteria{c});
     
 end
 
-load([drug, '_delta_MI_q', num2str(quantile_used), '_shm', shm_flag, state_label, '_tails.mat'])
-
-criteria = {'whm', 'shm', 'shm/whm', 'entropy'};
-
-pairs = nchoosek(1:length(criteria), 2);
-
-for c = 1:length(criteria)
+for c = 5:no_criteria
     
-    delta_labels{c} = ['Low ', criteria{c}];
+    delta_labels{c} = sprintf('Highest %g \\delta %s', quantile_used, criteria{c});
     
 end
 
-for p = 1:length(pairs)
+for p = 1:no_pairs
     
-    delta_labels{length(criteria) + p} = ['Low ', criteria{pairs(p, 1)}, ' & ', criteria{pairs(p, 2)}];
+    delta_labels{no_criteria + p} = delta_labels(pairs(p, :));
     
 end
 
-delta_labels{end + 1} = 'Low shm & whm & shm/whm & entropy';
+delta_labels{end} = 'Intersection of All Criteria';
 
 no_deltas = length(delta_labels);
 
@@ -58,7 +70,7 @@ for s = 1:subj_num
     
     figure
     
-    for d = 1:length(delta_labels)
+    for d = 1:no_deltas
         
         subplot(no_rows, no_cols, d)
         
@@ -72,7 +84,7 @@ for s = 1:subj_num
     
     mtit([subject, ' MI During Narrowband Delta', long_state_label])
     
-    save_as_pdf(gcf, [subject, '_', drug, '_delta_MI_q', num2str(quantile_used), '_shm', shm_flag, state_label])
+    save_as_pdf(gcf, [subject, '_', drug, '_delta_MI_q', num2str(quantile_used), state_label])
     
 end
 
@@ -94,4 +106,4 @@ end
 
 mtit(['MI During Narrowband Delta', long_state_label])
 
-save_as_pdf(gcf, [drug, '_delta_MI_q', num2str(quantile_used), '_shm', shm_flag, state_label])
+save_as_pdf(gcf, [drug, '_delta_MI_q', num2str(quantile_used), state_label])
