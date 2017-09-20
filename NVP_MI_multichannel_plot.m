@@ -1,4 +1,7 @@
-function NVP_MI_multichannel_plot
+function NVP_MI_multichannel_plot(drug)
+
+if nargin < 1, drug = []; end
+if isempty(drug), drug = 'NVP'; end
 
 load('AP_freqs.mat')
 
@@ -39,17 +42,17 @@ for c=1:no_channels
     
 end
 
-max_by_drug = reshape(max(max(max(All_cplot_data)), [], 4), no_drugs, no_stats, no_channels, no_norms);
-
-min_by_drug = reshape(min(min(min(All_cplot_data)), [], 4), no_drugs, no_stats, no_channels, no_norms);
-
 plot_start_hr = 5; plot_end_hr = 8; no_plot_hrs = plot_end_hr - plot_start_hr + 1;
+
+max_by_drug = reshape(max(max(max(All_cplot_data(:, :, :, plot_start_hr:plot_end_hr, :, :, :))), [], 4), no_drugs, no_stats, no_channels, no_norms);
+
+min_by_drug = reshape(min(min(min(All_cplot_data(:, :, :, plot_start_hr:plot_end_hr, :, :, :))), [], 4), no_drugs, no_stats, no_channels, no_norms);
 
 for n = 1 %:no_norms
     
     for s = 1 %:no_stats
         
-        for d = [2 3] % 1:no_drugs
+        for d = find(strcmp(drugs, drug)) % 1:no_drugs
             
             figure
             
@@ -59,13 +62,21 @@ for n = 1 %:no_norms
                     
                     subplot(no_channels, no_plot_hrs, (c - 1)*no_plot_hrs + h - plot_start_hr + 1)
                     
-                    imagesc(phase_freqs, amp_freqs, All_cplot_data(:, :, d, h, s, c, n) - All_cplot_data(:, :, 1, h, s, c, n))
+                    imagesc(phase_freqs, amp_freqs, All_cplot_data(:, :, d, h, s, c, n)) % - All_cplot_data(:, :, 1, h, s, c, n))
                     
                     caxis([min_by_drug(d, s, c, n) max_by_drug(d, s, c, n)])
                     
                     axis xy
                     
-                    ylabel({channel_names{c};'Amp. Freq. (Hz)'})
+                    set(gca, 'FontSize', 16)
+                    
+                    colormap(gca, 'jet')
+                    
+                    if h == plot_start_hr
+                    
+                        ylabel({channel_names{c};'Amp. Freq. (Hz)'})
+                    
+                    end
                     
                     if c == 1
                         
