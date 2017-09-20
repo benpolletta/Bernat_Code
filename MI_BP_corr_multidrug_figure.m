@@ -1,6 +1,4 @@
-function MI_BP_corr_multidrug_figure(suffix)
-
-figure
+function MI_BP_corr_multidrug_figure(suffix, flip_flag)
 
 load('AP_freqs'), load('subjects'), load('drugs'), load('channels'), load('BP_bands')
 
@@ -10,7 +8,11 @@ pairs = [cumsum(ones(3, 2)); nchoosek(1:3, 2); fliplr(nchoosek(1:3, 2))];
 
 no_pairs = length(pairs);
 
-channel_indices = [1 3];
+channel_indices = [1 3]; flip_tag = '';
+
+if flip_flag == 1, channel_indices = fliplr(channel_indices); flip_tag = '_flipped'; end
+
+if flip_flag == 2, channel_indices = [2 2]; flip_tag = '_occi'; end
 
 no_channels = 3;
         
@@ -18,11 +20,13 @@ for ch = 1:no_channels
     
     figure
     
+    colormap(gca, 'jet')
+    
     for d = 1:no_drugs
         
         drug = drugs{d};
         
-        load([drug, '_MI_BP_pct_0to4hrs', suffix, '.mat'])
+        load([drug, '_MI_BP_pct_0to4hrs', suffix, '_.mat'])
         
         for band = 1:2
             
@@ -48,7 +52,7 @@ for ch = 1:no_channels
             
             if band == 1
                 
-                ylabel(drug, 'FontSize', 16)
+                ylabel({drug; 'Amp. Freq. (Hz)'}, 'FontSize', 16)
                 
             end
             
@@ -58,7 +62,7 @@ for ch = 1:no_channels
                 
             elseif d == no_drugs
                 
-                xlabel('Frequency (Hz)', 'FontSize', 16)
+                xlabel('Phase Freq. (Hz)', 'FontSize', 16)
                 
             end
             
@@ -66,7 +70,7 @@ for ch = 1:no_channels
         
     end
 
-    save_as_pdf(gcf, [channel_names{ch}, 'MI_BP_corr', suffix])
+    save_as_pdf(gcf, [channel_names{ch}, 'MI_BP_corr', suffix, flip_tag])
 
 end
 
