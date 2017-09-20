@@ -1,4 +1,4 @@
-function collect_MI_by_tdr_tails(drug, quantile_used, states)
+function collect_MI_by_tdr_tails(channel, drug, quantile_used, states, summed_flag)
 
 load('subjects.mat'), load('AP_freqs.mat')
     
@@ -16,14 +16,28 @@ if ~isempty(states)
     
 end
 
-name = 'ALL_Frontal';
+name = ['ALL_', channel];
+
+measure = 'p0.99_IEzs';
+
+if summed_flag
+    suffix = 'summed.mat';
+    summed_tag = 'summed_';
+else
+    suffix = 'hr_MI.txt';
+    summed_tag = '';
+end
 
 measure = 'p0.99_IEzs';
 
 MI_drugs = text_read([name,'/',name,'_',measure,'_drugs.txt'],'%s');
 MI_subjects = text_read([name,'/',name,'_',measure,'_subjects.txt'],'%s');
 MI_states = text_read([name,'/',name,'_',measure,'_states.txt'],'%s');
-MI = load([name, '/', name, '_', measure, '_hr_MI.txt']);
+MI = load([name, '/', name, '_', measure, '_', suffix]);
+
+if summed_flag
+    MI = MI.summed_MI;
+end
 
 no_criteria = 4;
 no_pairs = nchoosek(no_criteria, 2);
@@ -180,6 +194,6 @@ for f = 1:no_figures
     
 end
 
-save([drug, '_theta_MI_q', num2str(quantile_used), state_label, '_tails.mat'], '-v7.3',...
+save([drug, '_theta_', summed_tag, 'MI_q', num2str(quantile_used), state_label, '_tails.mat'], '-v7.3',...
     'drug', 'state', 'quantile_used', 'theta_MI', 'median_subj_tMI', 'median_tMI',...
     'non_theta_MI', 'median_subj_ntMI', 'median_ntMI')

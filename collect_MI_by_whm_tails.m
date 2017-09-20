@@ -1,4 +1,7 @@
-function collect_MI_by_whm_tails(drug, quantile_used, states)
+function collect_MI_by_whm_tails(channel, drug, quantile_used, states, summed_flag)
+
+if nargin < 4, summed_flag = []; end
+if isempty(summed_flag), summed_flag = 0; end
 
 load('subjects.mat'), load('AP_freqs.mat')
 
@@ -16,15 +19,26 @@ if ~isempty(states)
 
 end
 
-name = 'ALL_Frontal';
+name = ['ALL_', channel];
 
 measure = 'p0.99_IEzs';
+
+if summed_flag
+    suffix = 'summed.mat';
+    summed_tag = 'summed_';
+else
+    suffix = 'hr_MI.txt';
+    summed_tag = '';
+end
 
 MI_drugs = text_read([name,'/',name,'_',measure,'_drugs.txt'],'%s');
 MI_subjects = text_read([name,'/',name,'_',measure,'_subjects.txt'],'%s');
 MI_states = text_read([name,'/',name,'_',measure,'_states.txt'],'%s');
-MI = load([name, '/', name, '_', measure, '_hr_MI.txt']);
+MI = load([name, '/', name, '_', measure, '_', suffix]);
 
+if summed_flag
+    MI = MI.summed_MI;
+end
 
 criteria = {'WHM', 'SHM', 'SHM/WHM', 'Entropy', 'Peak Freq.', 'Peak Pow.', 'Pow.'};
 no_criteria = length(criteria);
@@ -102,7 +116,7 @@ for s = 1:subj_num
             delta_indices(:, c) = criteria(:, c) > quantile(criteria(subj_state_index, c), 1 - quantile_used)...
                 & subj_state_index;
             
-            non_delta_indices(:, c) = criteria(:, c) > quantile(criteria(subj_state_index, c), quantile_used)...
+            non_delta_indices(:, c) = criteria(:, c) < quantile(criteria(subj_state_index, c), quantile_used)...
                 & subj_state_index;
             
         end
@@ -201,6 +215,6 @@ for f = 1:no_figures
 
 end
 
-save([drug, '_delta_MI_q', num2str(quantile_used), state_label, '_tails.mat'], '-v7.3',...
+save([channel, '_', drug, '_delta_', summed_tag, 'MI_q', num2str(quantile_used), state_label, '_tails.mat'], '-v7.3',...
     'drug', 'state', 'quantile_used', 'delta_MI', 'median_subj_dMI', 'median_dMI',...
     'non_delta_MI', 'median_subj_ndMI', 'median_ndMI')
