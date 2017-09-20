@@ -4,6 +4,8 @@ load('AP_freqs')
 
 load('drugs')
 
+load('subjects')
+
 state_label = '';
 
 if ~isempty(states)
@@ -44,25 +46,41 @@ for d = 1:no_drugs
     
     cmax = max(max(median_tMI(:, measure_index)), max(median_ntMI(:, measure_index)));
     
-    subplot(no_drugs, 2, 2*(d - 1) + 1)
+    subplot(no_drugs, 3, 3*(d - 1) + 1)
     
     imagesc(phase_freqs, amp_freqs, reshape(median_tMI(:, measure_index), no_afs, no_pfs))
     
+    set(gca, 'FontSize', 16)
+    
     axis xy
     
     caxis([cmin cmax])
     
-    ylabel(drugs{d})
+    ylabel({drugs{d}; 'Amp. Freq. (Hz)'})
     
     if d == 1
     
-        title({['Lowest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+        if measure_index <= 2
+            
+            title({['Highest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+            
+        else
+    
+            title({['Lowest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+            
+        end
+        
+    elseif d == 4
+        
+        xlabel('Phase Freq. (Hz)')
         
     end
     
-    subplot(no_drugs, 2, 2*(d - 1) + 2)
+    subplot(no_drugs, 3, 3*(d - 1) + 2)
     
     imagesc(phase_freqs, amp_freqs, reshape(median_ntMI(:, measure_index), no_afs, no_pfs))
+    
+    set(gca, 'FontSize', 16)
     
     axis xy
     
@@ -70,7 +88,19 @@ for d = 1:no_drugs
     
     if d == 1
     
-        title({['Highest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+        if measure_index <= 2
+            
+            title({['Lowest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+            
+        else
+            
+            title({['Highest ', num2str(quantile_used), ' ', theta_labels{measure_index}]; long_state_label}, 'FontSize', 16)
+            
+        end
+        
+    elseif d == 4
+        
+        xlabel('Phase Freq. (Hz)')
     
     end
     
@@ -98,13 +128,15 @@ end
 
 function theta_labels = make_theta_labels
 
-theta_labels = {'\delta/\theta (peak)', '\delta/\theta', '\delta', '\theta'};
+theta_labels = {'\theta/\delta (peak)', '\theta/\delta', '\delta', '\theta'};
+
+alt_theta_labels = {'\delta/\theta (peak)', '\delta/\theta', '\delta', '\theta'};
 
 pairs = nchoosek(1:length(theta_labels), 2);
 
 for p = 1:length(pairs)
     
-    theta_labels{length(theta_labels) + p} = [theta_labels{pairs(p, 1)}, ' & ', theta_labels{pairs(p, 2)}];
+    theta_labels{length(theta_labels) + p} = [alt_theta_labels{pairs(p, 1)}, ' & ', alt_theta_labels{pairs(p, 2)}];
     
 end
 
