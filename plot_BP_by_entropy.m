@@ -1,6 +1,6 @@
 function plot_BP_by_entropy(drug, quantile_used, states)
 
-shm_lim = [1.025 1.25];
+shm_label = make_label('shm', [1.025 1.25], []);
 
 load('subjects.mat'), load('AP_freqs.mat')
 
@@ -20,17 +20,7 @@ if ~isempty(states)
     
 end
 
-if isscalar(shm_lim)
-    
-    shm_flag = num2str(shm_lim, '%.03f');
-    
-elseif length(shm_lim) == 2
-    
-    shm_flag = sprintf('%.03f_%.03f', shm_lim);
-    
-end
-
-load([drug, '_delta_BP_q', num2str(quantile_used), '_shm', shm_flag, state_label, '_tails.mat'])
+load([drug, '_delta_BP_q', num2str(quantile_used), shm_label, state_label, '_tails.mat'])
 
 entropy_index = 4;
 
