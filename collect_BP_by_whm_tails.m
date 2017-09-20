@@ -21,16 +21,18 @@ name = 'ALL_Frontal';
 BP_drugs = text_read([name,'/',name,'_drugs.txt'],'%s');
 BP_subjects = text_read([name,'/',name,'_subjects.txt'],'%s');
 BP_states = text_read([name,'/',name,'_states.txt'],'%s');
-BP = load([name, '/', name, '_BP_pct.txt']);
+BP(:, :, 1) = load([name, '/', name, '_BP_pct.txt']);
+BP(:, :, 2) = load('ALL_CA1/ALL_CA1_BP_pct.txt');
+BP = permute(BP, [1 3 2]);
 
 no_criteria = 4;
 no_pairs = nchoosek(no_criteria, 2);
 no_figures = no_criteria + no_pairs + 1;
 
-delta_BP = nan(ceil(quantile_used*size(BP, 1)), size(BP, 2), no_figures);
-non_delta_BP = nan(ceil((1 - quantile_used)*size(BP, 1)), size(BP, 2), no_figures);
+delta_BP = nan(ceil(quantile_used*size(BP, 1)), size(BP, 2), size(BP, 3), no_figures);
+non_delta_BP = nan(ceil((1 - quantile_used)*size(BP, 1)), size(BP, 2), size(BP, 3), no_figures);
 
-[mean_subj_dBP, mean_subj_ndBP] = deal(nan(size(BP, 2), no_figures, subj_num));
+[mean_subj_dBP, mean_subj_ndBP] = deal(nan(size(BP, 2), size(BP, 3), no_figures, subj_num));
 
 [dBP_marker, ndBP_marker] = deal(zeros(no_figures, 1));
 
@@ -100,23 +102,23 @@ for s = 1:subj_num
 
     subj_non_indices = [high_whm_indices high_shm_sum_indices high_shm_whm_q_indices high_entropy_indices];
 
-    subj_MI = BP(subj_BP_index, :);
+    subj_BP = BP(subj_BP_index, :, :);
 
     for c = 1:no_criteria
 
         length_selected_dMI = sum(subj_indices(:, c));
 
-        delta_BP(dBP_marker(c) + (1:length_selected_dMI), :, c) = subj_MI(subj_indices(:, c), :);
+        delta_BP(dBP_marker(c) + (1:length_selected_dMI), :, :, c) = subj_BP(subj_indices(:, c), :, :);
         
-        mean_subj_dBP(:, c, s) = nanmean(subj_MI(subj_indices(:, c), :))';
+        mean_subj_dBP(:, :, c, s) = squeeze(nanmean(subj_BP(subj_indices(:, c), :, :), 1));
         
         dBP_marker(c) = dBP_marker(c) + length_selected_dMI;
 
         length_selected_ndMI = sum(subj_non_indices(:, c));
 
-        non_delta_BP(ndBP_marker(c) + (1:length_selected_ndMI), :, c) = subj_MI(subj_non_indices(:, c), :);
+        non_delta_BP(ndBP_marker(c) + (1:length_selected_ndMI), :, :, c) = subj_BP(subj_non_indices(:, c), :, :);
         
-        mean_subj_ndBP(:, c, s) = nanmean(subj_MI(subj_non_indices(:, c), :))';
+        mean_subj_ndBP(:, :, c, s) = squeeze(nanmean(subj_BP(subj_non_indices(:, c), :, :), 1));
         
         ndBP_marker(c) = ndBP_marker(c) + length_selected_ndMI;
 
@@ -130,9 +132,9 @@ for s = 1:subj_num
 
         length_selected_dMI = sum(index);
 
-        delta_BP(dBP_marker(no_criteria + p) + (1:length_selected_dMI), :, no_criteria + p) = subj_MI(index, :);
+        delta_BP(dBP_marker(no_criteria + p) + (1:length_selected_dMI), :, :, no_criteria + p) = subj_BP(index, :, :);
         
-        mean_subj_dBP(:, no_criteria + p, s) = nanmean(subj_MI(index, :))';
+        mean_subj_dBP(:, :, no_criteria + p, s) = squeeze(nanmean(subj_BP(index, :, :), 1));
         
         dBP_marker(no_criteria + p) = dBP_marker(no_criteria + p) + length_selected_dMI;
 
@@ -142,9 +144,9 @@ for s = 1:subj_num
 
         length_selected_ndMI = sum(non_index);
 
-        non_delta_BP(ndBP_marker(no_criteria + p) + (1:length_selected_ndMI), :, no_criteria + p) = subj_MI(non_index, :);
+        non_delta_BP(ndBP_marker(no_criteria + p) + (1:length_selected_ndMI), :, :, no_criteria + p) = subj_BP(non_index, :, :);
         
-        mean_subj_ndBP(:, no_criteria + p, s) = nanmean(subj_MI(non_index, :))';
+        mean_subj_ndBP(:, :, no_criteria + p, s) = squeeze(nanmean(subj_BP(non_index, :, :), 1));
         
         ndBP_marker(no_criteria + p) = ndBP_marker(no_criteria + p) + length_selected_ndMI;
 
@@ -156,9 +158,9 @@ for s = 1:subj_num
 
     length_selected_dMI = sum(index);
 
-    delta_BP(dBP_marker(no_figures) + (1:length_selected_dMI), :, no_figures) = subj_MI(index, :);
+    delta_BP(dBP_marker(no_figures) + (1:length_selected_dMI), :, :, no_figures) = subj_BP(index, :, :);
         
-    mean_subj_dBP(:, no_figures, s) = nanmean(subj_MI(index, :))';
+    mean_subj_dBP(:, :, no_figures, s) = squeeze(nanmean(subj_BP(index, :, :), 1));
     
     dBP_marker(no_figures) = dBP_marker(no_figures) + length_selected_dMI;
 
@@ -168,9 +170,9 @@ for s = 1:subj_num
 
     length_selected_ndMI = sum(non_index);
 
-    non_delta_BP(ndBP_marker(no_figures) + (1:length_selected_ndMI), :, no_figures) = subj_MI(non_index, :);
+    non_delta_BP(ndBP_marker(no_figures) + (1:length_selected_ndMI), :, :, no_figures) = subj_BP(non_index, :, :);
         
-    mean_subj_ndBP(:, no_figures, s) = nanmean(subj_MI(non_index, :))';
+    mean_subj_ndBP(:, :, no_figures, s) = squeeze(nanmean(subj_BP(non_index, :, :), 1));
     
     ndBP_marker(no_figures) = ndBP_marker(no_figures) + length_selected_ndMI;
 
@@ -178,20 +180,20 @@ for s = 1:subj_num
 
 end
 
-[mean_dBP, mean_ndBP] = deal(nan(size(BP, 2), no_figures));
+% [mean_dBP, mean_ndBP] = deal(nan(size(BP, 2), size(BP, 3), no_figures));
 
 for f = 1:no_figures
 
     delta_BP(sum(delta_BP(:, :, f), 2) == 0, :, f) = nan;
-    
-    mean_dBP(:, f) = nanmean(delta_BP(:, :, f))';
 
     non_delta_BP(sum(non_delta_BP(:, :, f), 2) == 0, :, f) = nan;
     
-    mean_ndBP(:, f) = nanmean(non_delta_BP(:, :, f))';
-    
 end
 
-save([drug, '_delta_BP_q', num2str(quantile_used), '_shm', sprintf('%.03f_%.03f', shm_lims), state_label, '_tails.mat'], '-v7.3',...
+mean_dBP = squeeze(nanmean(delta_BP, 1));
+
+mean_ndBP = squeeze(nanmean(non_delta_BP, 1));
+
+save([drug, '_delta_BP_q', num2str(quantile_used), make_label('shm', shm_lims, []), state_label, '_tails.mat'], '-v7.3',...
     'drug', 'shm_lims', 'state', 'quantile_used', 'indices', 'delta_BP', 'mean_subj_dBP', 'mean_dBP',...
     'non_delta_BP', 'mean_subj_ndBP', 'mean_ndBP')
