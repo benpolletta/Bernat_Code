@@ -170,7 +170,7 @@ for n = 1:no_norms
                 
                 if c == 1
                     
-                    title({drugs{d}; [long_stats{s}, ' MI, ', long_norms{n}, long_hr_labels{max_hr_indices(d, s, c, n) + 4}]})
+                    title({drugs{d}; [long_hr_labels{max_hr_indices(d, s, c, n) + 4}]}) % long_stats{s}, ' MI, ', long_norms{n}, 
                     
                 % else
                 % 
@@ -178,7 +178,9 @@ for n = 1:no_norms
                     
                 end
             
-                if d == 2, ylabel(channel_names(c)), end
+                if d == 2, ylabel({channel_names{c}; 'Amp. Freq. (Hz)'}), end
+                
+                if c == no_channels, xlabel('Phase Freq. (Hz)'), end
                 
             end
             
