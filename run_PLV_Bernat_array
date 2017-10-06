@@ -1,0 +1,13 @@
+#!/bin/sh -l
+
+#$ -pe mpi_16_tasks_per_node 16
+
+#$ -l h_rt=168:00:00
+
+#$ -t 1-3
+pairs=(1 2 3)
+index=$(($SGE_TASK_ID-1))
+pair=${pairs[$index]}
+
+echo "Executing run_PLV_channel_pair "$pair"."
+Bernat_NMDAR_Blockers/run_PLV_channel_pair $pair
