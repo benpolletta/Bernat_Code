@@ -1,5 +1,7 @@
 function delta_theta_corr_figure(BP_norm, drug, ds_factor)
 
+bonferroni_count = 2*3*3*20 + 2*2*40 + 4;
+
 load('subjects.mat')
    
 fr = 'ALL_Frontal'; ca1 = 'ALL_CA1';
@@ -64,7 +66,7 @@ for s = 1:no_subjects
     
     [rho, p] = corr(subj_delta, subj_theta);
     
-    title([subjects{s}, ', \rho = ', num2str(rho, '%.3g'), ', p = ', num2str(p, '%.3g')], 'FontSize', 16)
+    title([subjects{s}, ', \rho = ', num2str(rho, '%.3g'), ', p = ', num2str(min(1, bonferroni_count*p), '%.3g')], 'FontSize', 16)
     
 end
 
@@ -98,6 +100,6 @@ plot(c{1}, p(1)*c{1} + p(2), 'w')
 
 [rho, p] = corr(delta', theta');
 
-title([drug, ', \rho = ', num2str(rho, '%.3g'), ', p = ', num2str(p, '%.3g')], 'FontSize', 16)
+title([drug, ', \rho = ', num2str(rho, '%.3g'), ', p = ', num2str(p, '%.3g')], 'FontSize', 16) % min(1, bonferroni_count*p)
 
 save_as_pdf(gcf, [drug, '_theta_delta_corr_ds', num2str(ds_factor, '%.3g')])
