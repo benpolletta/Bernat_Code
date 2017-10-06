@@ -46,7 +46,7 @@ short_BP_6min_labels = (1:40)*6 - 3; short_BP_6min_labels(short_BP_6min_labels =
 
 tick_spacing = floor(no_BP_6min_periods/5);
 
-no_BP_bands = 8;
+no_BP_bands = 6; % 8; Changed as of 9/20/17.
 
 c_order = [0 0 1; 0 .5 0; 1 0 0];
     
@@ -96,7 +96,7 @@ for n=1:no_norms
         
         pd_index = (str2double(cat2_labels) >= min(short_6min_labels) & str2double(cat2_labels) <= max(short_6min_labels));
         
-        BP_ranksum_new = permute(BP_ranksum, [2, 1, 3]);
+        BP_ranksum_new = permute(BP_ranksum(:, :, :, 2), [2, 1, 3]);
         
         BPr_dims = size(BP_ranksum_new);
         
@@ -203,23 +203,31 @@ load('AP_freqs'), load('subjects'), load('drugs'), load('channels'), load('BP_ba
     
 load('BP_bands')
 
-name = 'ALL_Frontal';
+suffix = '_BP_pct_6min_BP_stats';
 
-Frontal_BP_drugs = text_read([name, '/', name, '_drugs.txt'], '%s');
-Frontal_BP_subjects = text_read([name, '/', name, '_subjects.txt'], '%s');
-Frontal_BP_hrs = text_read([name, '/', name, '_hrs.txt'], '%s');
-Frontal_BP_states = text_read([name, '/', name, '_states.txt'], '%s');
-Frontal_BP = load([name, '/', name, '_BP.txt']);
+ch_dir = 'ALL_Frontal';
 
-name = 'ALL_CA1';
+% Frontal_BP_drugs = text_read([ch_dir, '/', ch_dir, '_drugs.txt'], '%s');
+% Frontal_BP_subjects = text_read([ch_dir, '/', ch_dir, '_subjects.txt'], '%s');
+% Frontal_BP_hrs = text_read([ch_dir, '/', ch_dir, '_hrs.txt'], '%s');
+% Frontal_BP_states = text_read([ch_dir, '/', ch_dir, '_states.txt'], '%s');
+% Frontal_BP = load([ch_dir, '/', ch_dir, '_BP_pct.txt']);
+% Frontal = load([ch_dir, '/', ch_dir, suffix, '.mat']);
+% Frontal_6mins = str2num(char(Frontal.cat2_labels));
+hr1_index = short_BP_6min_labels >= 0 & short_BP_6min_labels <= 60;
+hr4_index = short_BP_6min_labels >= 3*60 & short_BP_6min_labels <= 4*60;
 
-CA1_BP_drugs = text_read([name,'/',name,'_drugs.txt'],'%s');
-CA1_BP_subjects = text_read([name,'/',name,'_subjects.txt'],'%s');
-CA1_BP_hrs = text_read([name,'/',name,'_hrs.txt'],'%s');
-CA1_BP_states = text_read([name,'/',name,'_states.txt'],'%s');
-CA1_BP = load([name, '/', name, '_BP.txt']);
+ch_dir = 'ALL_CA1';
 
-BP = Frontal_BP; BP(:, :, 2) = CA1_BP;
+% CA1_BP_drugs = text_read([ch_dir,'/',ch_dir,'_drugs.txt'],'%s');
+% CA1_BP_subjects = text_read([ch_dir,'/',ch_dir,'_subjects.txt'],'%s');
+% CA1_BP_hrs = text_read([ch_dir,'/',ch_dir,'_hrs.txt'],'%s');
+% CA1_BP_states = text_read([ch_dir,'/',ch_dir,'_states.txt'],'%s');
+% CA1_BP = load([ch_dir, '/', ch_dir, '_BP_pct.txt']);
+% CA1 = load([ch_dir, '/', ch_dir, suffix, '.mat']);
+% CA1_6mins = str2num(char(CA1.cat2_labels));
+
+% BP = Frontal_BP; BP(:, :, 2) = CA1_BP;
 
 chan_labels = {'Frontal', 'CA1'}; band_labels = {'Delta', 'Theta'};
 
@@ -231,9 +239,23 @@ for ch = 1:2
     
     for band = 1:2
         
-        BP1 = BP(strcmp(Frontal_BP_hrs, 'post1') & strcmp(Frontal_BP_drugs, 'NVP'), band, ch);
+        BP1 = All_BP_stats(hr1_index, ch, band, 2, d, n);
         
-        BP2 = BP(strcmp(Frontal_BP_hrs, 'post4') & strcmp(Frontal_BP_drugs, 'NVP'), band, ch);
+        BP2 = All_BP_stats(hr4_index, ch, band, 2, d, n);
+        
+        % BP1 = BP(strcmp(Frontal_BP_hrs, 'post1') & strcmp(Frontal_BP_drugs, 'NVP'), band, ch);
+        %
+        % BP2 = BP(strcmp(Frontal_BP_hrs, 'post4') & strcmp(Frontal_BP_drugs, 'NVP'), band, ch);
+        
+        % for s = 1:subj_num
+        % 
+        %     BP1(s, 1) = nanmean(BP(strcmp(Frontal_BP_hrs, 'post1') & strcmp(Frontal_BP_drugs, 'NVP')...
+        %         & strcmp(Frontal_BP_subjects, subjects{s}), band, ch));
+        % 
+        %     BP2(s, 1) = nanmean(BP(strcmp(Frontal_BP_hrs, 'post4') & strcmp(Frontal_BP_drugs, 'NVP')...
+        %         & strcmp(Frontal_BP_subjects, subjects{s}), band, ch));
+        % 
+        % end
         
         % BP_median = nanmedian([BP1 BP2]);
         
@@ -251,13 +273,15 @@ for ch = 1:2
         
         bar_pos = get_bar_pos(handle);
         
-        [~, p_val] = ttest(BP1, BP2); % ranksum(BP1, BP2);
+        [~, p_val] = ttest(BP1, BP2); % p_val = ranksum(BP1, BP2); % 
         
-        if p_val < .05/bonferroni_count
+        p_val % *bonferroni_count
+        
+        if p_val < .05 % /bonferroni_count
             
             bar_pairs = {[bar_pos(1, 1), bar_pos(2, 1)]};
             
-            sigstar(bar_pairs, min(1, p_val*bonferroni_count))
+            sigstar(bar_pairs, p_val) % min(1, p_val*bonferroni_count))
             
         end
         
