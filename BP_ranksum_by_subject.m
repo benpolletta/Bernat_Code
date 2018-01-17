@@ -14,7 +14,7 @@ mat_labels = {'by_state', 'BP_stats'};
 
 All_BP_ranksum = nan(10*8, no_channels, 2, 6, no_drugs - 1, no_norms, no_timesteps);
 
-%% Plots by time (not broken down by state).
+%% Stats by time (not broken down by state).
 
 for n = 1:no_norms
     

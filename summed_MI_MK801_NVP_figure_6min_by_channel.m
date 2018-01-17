@@ -1,4 +1,4 @@
-function summed_MI_MK801_NVP_figure_6min % (hi_hr, cplot_norm)
+function summed_MI_MK801_NVP_figure_6min_by_channel % (hi_hr, cplot_norm)
 
 cplot_norm = '';
 

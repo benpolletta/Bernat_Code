@@ -42,7 +42,7 @@ for c=1:no_channels
     
 end
 
-plot_start_hr = 5; plot_end_hr = 8; no_plot_hrs = plot_end_hr - plot_start_hr + 1;
+plot_start_hr = 4; plot_end_hr = 8; no_plot_hrs = plot_end_hr - plot_start_hr + 1;
 
 max_by_drug = reshape(max(max(max(All_cplot_data(:, :, :, plot_start_hr:plot_end_hr, :, :, :))), [], 4), no_drugs, no_stats, no_channels, no_norms);
 
@@ -100,7 +100,7 @@ for n = 1 %:no_norms
                 
             end
             
-            save_as_pdf(gcf,[drugs{d}, '_MI_multichannel_post1to4_median'])
+            save_as_pdf(gcf, sprintf('%s_MI_multichannel_hours%dto%d_median', drugs{d}, plot_start_hr - 4, plot_end_hr - 4))
             
         end
         
