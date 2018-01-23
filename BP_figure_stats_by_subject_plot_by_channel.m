@@ -125,15 +125,15 @@ for n = 1:no_norms
                     
                     clear plot_stats
                     
-                    if d == 1
+                    % if d == 1
                         
                         plot_stats = squeeze(All_BP_stats(:, c, bands_plotted, s, d, n, t));
                         
-                    else
+                    % else
                     
-                        plot_stats = squeeze(All_BP_stats(:, c, bands_plotted, s, d, n, t) - All_BP_stats(:, c, bands_plotted, s, 1, n, t));
+                    %    plot_stats = squeeze(All_BP_stats(:, c, bands_plotted, s, d, n, t) - All_BP_stats(:, c, bands_plotted, s, 1, n, t));
                     
-                    end
+                    % end
                         
                     ax(c, d - first_drug + 1) = subplot(no_channels, no_drugs_plotted, (c - 1)*no_drugs_plotted + d - first_drug + 1); % (d - 2)*no_bands_plotted + b)
                     
@@ -151,10 +151,10 @@ for n = 1:no_norms
                         
                         title(drugs{d})
                         
-                        if d - 1 == 1
+                        if d == first_drug
                             
                             legend(band_labels(bands_plotted),...
-                                'Location', 'NorthEast', 'FontSize', 6)
+                                'Location', 'NorthWest', 'FontSize', 6)
                             
                         end
                         
@@ -164,7 +164,7 @@ for n = 1:no_norms
                         
                     end
                     
-                    if d - 1 == 1
+                    if d == first_drug
                         
                         ylabel(channel_names{c})
                         
@@ -200,7 +200,7 @@ for n = 1:no_norms
                 
             end
             
-            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel_',...
+            save_as_pdf(gcf,['ALL_BP', norms{n}, '_multichannel',...
                 timesteps{t}, make_label('bands', bands_plotted), sig_flag, '_stats_by_subject_plot_by_channel']) %, 'orientation', 'portrait')
             
         end
