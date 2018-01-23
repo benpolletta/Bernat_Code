@@ -1,0 +1,21 @@
+#!/bin/sh -l
+
+#$ -pe mpi_16_tasks_per_node 16
+
+# #$ -l h_rt=48:00:00
+
+#$ -t 1-24
+subjects=("'A99'" "'A102'" "'A103'" "'A104'" "'A105'" "'A106'")
+drugs=("'saline'" "'MK801'" "'NVP'" "'Ro25'")
+
+index=$(($SGE_TASK_ID-1))
+subject=${subjects[$(($index % 6))]}
+# drug=${drugs[echo $(($index/6))|cut -f1 -d"."]}
+drug=${drugs[$(( ($index+6-1)/6 ))]}
+
+
+echo "Job starting: executing func_eval_Bernat("$channel", "$subject", "$drug", @pmtm, )."
+
+module load matlab/2016a
+
+matlab -nosplash -nodisplay -r "cd (project_folder), cd Bernat_NMDAR_antagonists, func_eval_Bernat({$channel}, {$subject}, {$drug}, @pmtm, ), exit"
