@@ -4,18 +4,20 @@
 
 # #$ -l h_rt=48:00:00
 
-#$ -t 1-24
+#$ -t 1-72
 subjects=("'A99'" "'A102'" "'A103'" "'A104'" "'A105'" "'A106'")
 drugs=("'saline'" "'MK801'" "'NVP'" "'Ro25'")
+channels=("'Frontal'" "'Occipital'" "'CA1'")
+
 
 index=$(($SGE_TASK_ID-1))
-subject=${subjects[$(($index % 6))]}
-# drug=${drugs[echo $(($index/6))|cut -f1 -d"."]}
-drug=${drugs[$(( ($index+6-1)/6 ))]}
+subject=${subjects[$(( ($index - 1) % 6 + 1))]}
+# drug=${drugs[echo $(($index / 6))|cut -f1 -d"."]}
+drug=${drugs[$(( $(( ($index - 1) / 6 )) % 4 + 1 ))]}
+channel=${channels[$(( $(( ($index - 1) / 24 )) + 1 ))]}
 
-
-echo "Job starting: executing func_eval_Bernat("$channel", "$subject", "$drug", @pmtm, )."
+echo "Job starting: executing func_eval_Bernat("$channel", "$subject", "$drug", @pmtm_Bernat, 2)."
 
 module load matlab/2016a
 
-matlab -nosplash -nodisplay -r "cd (project_folder), cd Bernat_NMDAR_antagonists, func_eval_Bernat({$channel}, {$subject}, {$drug}, @pmtm, ), exit"
+matlab -nosplash -nodisplay -r "cd (project_folder), cd Bernat_NMDAR_antagonists, func_eval_Bernat({$channel}, {$subject}, {$drug}, @pmtm_Bernat, 2), exit"
